@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>連鎖律ビジュアライザー — 自由入力版</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+
+:root {
+  --bg:      #09090f;
+  --panel:   #111118;
+  --panel2:  #18181f;
+  --border:  #222230;
+  --outer:   #f0a500;
+  --inner:   #00c9a7;
+  --deriv:   #e05a7a;
+  --tangent: #a78bfa;
+  --text:    #dde1ec;
+  --dim:     #5a5e7a;
+  --green:   #4ade80;
+  --red:     #f87171;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+}
+
+/* subtle grid bg */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(167,139,250,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167,139,250,.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 28px 14px 80px; }
+
+/* ── HEADER ── */
+header {
+  margin-bottom: 28px;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.hd-left { }
+.hd-eyebrow { font-size: 10px; letter-spacing: 4px; color: var(--dim); margin-bottom: 6px; }
+.hd-title {
+  font-family: 'Kaisei Decol', serif;
+  font-size: clamp(20px,4vw,34px);
+  line-height: 1.2;
+}
+.hd-title em { font-style: normal; color: var(--outer); }
+.hd-formula {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 6px 14px;
+  border: 1px solid rgba(167,139,250,.3);
+  color: var(--tangent);
+  border-radius: 20px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* ── INPUT BOX ── */
+.input-section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 22px;
+  margin-bottom: 22px;
+}
+.input-label {
+  font-size: 10px; letter-spacing: 3px; color: var(--dim); margin-bottom: 10px;
+}
+.input-row {
+  display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;
+}
+.input-prefix {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px; color: var(--dim);
+  display: flex; align-items: center;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+#exprInput {
+  flex: 1; min-width: 180px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+#exprInput:focus { border-color: var(--tangent); }
+#exprInput.error { border-color: var(--red); }
+#exprInput.ok    { border-color: var(--green); }
+
+.go-btn {
+  padding: 10px 24px;
+  background: rgba(167,139,250,.15);
+  border: 1px solid rgba(167,139,250,.4);
+  color: var(--tangent);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px; cursor: pointer;
+  border-radius: 4px;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.go-btn:hover { background: rgba(167,139,250,.28); }
+
+.status-row {
+  margin-top: 10px; min-height: 20px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.status-msg {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+.status-msg.ok  { color: var(--green); }
+.status-msg.err { color: var(--red); }
+
+.derived-display {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--deriv);
+  padding: 3px 10px;
+  background: rgba(224,90,122,.08);
+  border: 1px solid rgba(224,90,122,.2);
+  border-radius: 3px;
+}
+
+/* preset chips */
+.preset-row {
+  margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;
+}
+.preset-label { font-size: 10px; color: var(--dim); letter-spacing: 2px; align-self: center; margin-right: 4px; }
+.preset-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; padding: 4px 12px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  color: var(--dim); cursor: pointer;
+  border-radius: 20px; transition: all .18s;
+}
+.preset-chip:hover { border-color: var(--outer); color: var(--outer); }
+
+/* ── MAIN GRID ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 18px; align-items: start;
+}
+@media(max-width:680px){ .main-grid { grid-template-columns: 1fr; } }
+
+/* ── GRAPH PANEL ── */
+.graph-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+}
+.graph-topbar {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+.graph-topbar-title { font-size: 10px; letter-spacing: 2px; color: var(--dim); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--dim); font-family: 'IBM Plex Mono', monospace; }
+.leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
+
+canvas#graph { display: block; width: 100%; background: var(--bg); }
+
+/* slider */
+.slider-bar {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--panel2);
+}
+.slider-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.slider-top-label { font-size: 10px; letter-spacing: 2px; color: var(--dim); }
+.x-readout {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px; color: var(--tangent);
+}
+input[type=range] { width: 100%; accent-color: var(--tangent); cursor: pointer; }
+
+/* ── SIDE PANEL ── */
+.side-panel {
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.info-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+}
+.card-header {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px; letter-spacing: 2px; color: var(--dim);
+  background: var(--panel2);
+}
+.card-body { padding: 14px; }
+
+/* decomp blocks */
+.decomp-block {
+  border-radius: 3px; padding: 12px 14px; margin-bottom: 10px;
+  position: relative; overflow: hidden;
+}
+.decomp-block::before {
+  content: ''; position: absolute; left:0; top:0; bottom:0; width: 3px;
+}
+.db-outer { background: rgba(240,165,0,.06); border: 1px solid rgba(240,165,0,.18); }
+.db-outer::before { background: var(--outer); }
+.db-inner { background: rgba(0,201,167,.06); border: 1px solid rgba(0,201,167,.18); }
+.db-inner::before { background: var(--inner); }
+
+.db-label {
+  font-size: 10px; letter-spacing: 2px; margin-bottom: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.db-outer .db-label { color: var(--outer); }
+.db-inner .db-label { color: var(--inner); }
+.db-func { font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: var(--text); margin-bottom: 8px; }
+.db-vals { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.db-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; padding: 5px 8px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+}
+.db-val-k { display: block; font-size: 9px; color: var(--dim); margin-bottom: 2px; }
+.db-outer .db-val-n { color: var(--outer); font-size: 13px; }
+.db-inner .db-val-n { color: var(--inner); font-size: 13px; }
+
+/* chain result */
+.chain-box {
+  background: rgba(167,139,250,.07);
+  border: 1px solid rgba(167,139,250,.22);
+  border-radius: 4px; padding: 14px;
+}
+.chain-box-label { font-size: 10px; letter-spacing: 2px; color: var(--tangent); margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace; }
+.chain-eq { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+.chain-eq .co { color: var(--outer); }
+.chain-eq .ci { color: var(--inner); }
+.chain-num { font-family: 'IBM Plex Mono', monospace; font-size: 22px; color: var(--tangent); font-weight: 600; }
+
+/* ── DECOMP VISUAL ── */
+.decomp-visual {
+  margin-top: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+}
+.dv-header {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px; letter-spacing: 2px; color: var(--dim);
+  background: var(--panel2);
+}
+.dv-body { padding: 18px; }
+
+.color-formula {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: clamp(14px,3vw,20px);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  margin-bottom: 16px;
+  padding: 16px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px;
+  justify-content: center;
+}
+.cf-outer {
+  display: inline-block; padding: 3px 7px; border-radius: 3px;
+  background: rgba(240,165,0,.14); color: var(--outer);
+  border: 1px solid rgba(240,165,0,.28);
+}
+.cf-inner {
+  display: inline-block; padding: 3px 7px; border-radius: 3px;
+  background: rgba(0,201,167,.14); color: var(--inner);
+  border: 1px solid rgba(0,201,167,.28);
+}
+.cf-op { color: var(--dim); padding: 0 4px; font-size: 18px; }
+
+.explain-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:500px){ .explain-row { grid-template-columns: 1fr; } }
+.explain-card { padding: 12px 14px; border-radius: 3px; font-size: 12px; line-height: 1.8; }
+.ec-outer { background: rgba(240,165,0,.06); border: 1px solid rgba(240,165,0,.18); }
+.ec-inner { background: rgba(0,201,167,.06); border: 1px solid rgba(0,201,167,.18); }
+.ec-label { font-size: 9px; letter-spacing: 2px; margin-bottom: 6px; font-family: 'IBM Plex Mono', monospace; }
+.ec-outer .ec-label { color: var(--outer); }
+.ec-inner .ec-label { color: var(--inner); }
+.ec-body { color: var(--dim); }
+.ec-body strong { color: var(--text); }
+
+/* hint box */
+.hint-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: rgba(0,201,167,.05);
+  border: 1px solid rgba(0,201,167,.15);
+  border-radius: 4px;
+  font-size: 12px; color: var(--dim); line-height: 1.8;
+}
+.hint-box strong { color: var(--inner); }
+
+/* ── PLACEHOLDER ── */
+.placeholder {
+  text-align: center; padding: 40px 20px;
+  color: var(--dim); font-size: 14px; line-height: 2;
+}
+.placeholder .big { font-size: 36px; margin-bottom: 12px; display: block; }
+
+/* error overlay */
+.error-notice {
+  display: none;
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: rgba(248,113,113,.07);
+  border: 1px solid rgba(248,113,113,.25);
+  border-radius: 4px;
+  font-size: 13px; color: var(--red);
+}
+.error-notice.show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="hd-left">
+      <div class="hd-eyebrow">CHAIN RULE VISUALIZER — FREE INPUT</div>
+      <div class="hd-title"><em>式を入力</em>して連鎖律を見る</div>
+    </div>
+    <div class="hd-formula">f(g(x))' = f'(g(x)) · g'(x)</div>
+  </header>
+
+  <!-- INPUT -->
+  <div class="input-section">
+    <div class="input-label">式を入力してください</div>
+    <div class="input-row">
+      <div class="input-prefix">y =</div>
+      <input type="text" id="exprInput" placeholder="例：(2*x+1)^3" spellcheck="false" autocomplete="off">
+      <button class="go-btn" onclick="applyExpression()">グラフ化 →</button>
+    </div>
+    <div class="status-row">
+      <span class="status-msg" id="statusMsg"></span>
+      <span class="derived-display" id="derivedDisplay" style="display:none"></span>
+    </div>
+
+    <!-- preset chips -->
+    <div class="preset-row">
+      <span class="preset-label">例題</span>
+      <span class="preset-chip" onclick="setPreset('(2*x+1)^3')">(2x+1)³</span>
+      <span class="preset-chip" onclick="setPreset('sin(3*x)')">sin(3x)</span>
+      <span class="preset-chip" onclick="setPreset('(x^2+1)^4')">(x²+1)⁴</span>
+      <span class="preset-chip" onclick="setPreset('exp(2*x)')">e^(2x)</span>
+      <span class="preset-chip" onclick="setPreset('cos(x^2)')">cos(x²)</span>
+      <span class="preset-chip" onclick="setPreset('sqrt(3*x+2)')">√(3x+2)</span>
+      <span class="preset-chip" onclick="setPreset('log(x^2+1)')">log(x²+1)</span>
+      <span class="preset-chip" onclick="setPreset('sin(x)^2')">sin²(x)</span>
+    </div>
+  </div>
+
+  <!-- ERROR NOTICE -->
+  <div class="error-notice" id="errorNotice"></div>
+
+  <!-- MAIN (shown after valid input) -->
+  <div id="mainContent" style="display:none">
+    <div class="main-grid">
+
+      <!-- Graph -->
+      <div class="graph-panel">
+        <div class="graph-topbar">
+          <span class="graph-topbar-title">GRAPH</span>
+          <div class="legend">
+            <div class="leg"><div class="leg-dot" style="background:var(--outer)"></div>f(x) 元の関数</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--deriv)"></div>f'(x) 導関数</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--tangent)"></div>接線</div>
+          </div>
+        </div>
+        <canvas id="graph"></canvas>
+        <div class="slider-bar">
+          <div class="slider-top">
+            <span class="slider-top-label">X の値を動かす</span>
+            <span class="x-readout" id="xReadout">x = 0.50</span>
+          </div>
+          <input type="range" id="xSlider" min="-250" max="250" value="50" step="1">
+        </div>
+      </div>
+
+      <!-- Side panel -->
+      <div class="side-panel">
+        <div class="info-card">
+          <div class="card-header">DECOMPOSITION</div>
+          <div class="card-body">
+            <div class="decomp-block db-outer">
+              <div class="db-label">OUTER — 外側</div>
+              <div class="db-func" id="outerFuncLabel">—</div>
+              <div class="db-vals">
+                <div class="db-val db-outer">
+                  <span class="db-val-k">f(g(x))</span>
+                  <span class="db-val-n" id="valFx">—</span>
+                </div>
+                <div class="db-val db-outer">
+                  <span class="db-val-k">f'(g(x))</span>
+                  <span class="db-val-n" id="valFdx">—</span>
+                </div>
+              </div>
+            </div>
+            <div class="decomp-block db-inner">
+              <div class="db-label">INNER — 内側</div>
+              <div class="db-func" id="innerFuncLabel">—</div>
+              <div class="db-vals">
+                <div class="db-val db-inner">
+                  <span class="db-val-k">g(x)</span>
+                  <span class="db-val-n" id="valGx">—</span>
+                </div>
+                <div class="db-val db-inner">
+                  <span class="db-val-k">g'(x)</span>
+                  <span class="db-val-n" id="valGdx">—</span>
+                </div>
+              </div>
+            </div>
+            <div class="chain-box">
+              <div class="chain-box-label">CHAIN RULE</div>
+              <div class="chain-eq"><span class="co">f'(g(x))</span> × <span class="ci">g'(x)</span></div>
+              <div class="chain-eq" id="chainCalcRow">= — × —</div>
+              <div class="chain-num" id="chainResult">= —</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decomp visual -->
+    <div class="decomp-visual">
+      <div class="dv-header">VISUAL DECOMPOSITION — 式の構造</div>
+      <div class="dv-body">
+        <div class="color-formula" id="colorFormula"></div>
+        <div class="explain-row">
+          <div class="explain-card ec-outer">
+            <div class="ec-label">OUTER — 外側の微分</div>
+            <div class="ec-body" id="outerExplainText">—</div>
+          </div>
+          <div class="explain-card ec-inner">
+            <div class="ec-label">INNER — 内側の微分</div>
+            <div class="ec-body" id="innerExplainText">—</div>
+          </div>
+        </div>
+        <div class="hint-box" id="hintBox"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// MATH.JS SETUP
+// ============================================================
+// Compile & differentiate using math.js
+let compiledF   = null;
+let compiledFd  = null;
+let exprString  = '';
+let derivString = '';
+
+// for side panel decomposition
+let outerInfo = { label: '—', explainOuter: '—', explainInner: '—' };
+let innerInfo = { label: '—' };
+
+function compileExpression(expr) {
+  // Preprocess: allow ^ as power (math.js supports this)
+  const node    = math.parse(expr);
+  const diffNode = math.derivative(node, 'x');
+  compiledF  = node.compile();
+  compiledFd = diffNode.compile();
+  derivString = diffNode.toString();
+  exprString  = expr;
+  return { derivStr: diffNode.toString() };
+}
+
+function evalF(x)  {
+  try { const v = compiledF.evaluate({ x }); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
+  catch { return NaN; }
+}
+function evalFd(x) {
+  try { const v = compiledFd.evaluate({ x }); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
+  catch { return NaN; }
+}
+
+// ============================================================
+// DECOMPOSITION ANALYSIS
+// (Heuristic: detect outer/inner structure)
+// ============================================================
+function analyzeDecomposition(expr) {
+  // Patterns we can recognize
+  const patterns = [
+    // (inner)^n
+    { re: /^\((.+)\)\^(\d+)$/, name: 'power',
+      outer: m => `f(u) = u^${m[2]}`,
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => `u^${m[2]} を微分 → <strong>${m[2]}u^${parseInt(m[2])-1}</strong>`,
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `(<span class="cf-inner">${m[1]}</span>)<span class="cf-outer">^${m[2]}</span>`,
+      hint: m => `外側 u^${m[2]} の微分は ${m[2]}u^${parseInt(m[2])-1}、内側 ${m[1]} の微分を掛けます`
+    },
+    // sin(inner)
+    { re: /^sin\((.+)\)$/, name: 'sin',
+      outer: m => 'f(u) = sin(u)',
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => 'sin(u) を微分 → <strong>cos(u)</strong>',
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `<span class="cf-outer">sin(</span><span class="cf-inner">${m[1]}</span><span class="cf-outer">)</span>`,
+      hint: m => `外側 sin の微分は cos。内側 ${m[1]} の微分を掛けます`
+    },
+    // cos(inner)
+    { re: /^cos\((.+)\)$/, name: 'cos',
+      outer: m => 'f(u) = cos(u)',
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => 'cos(u) を微分 → <strong>−sin(u)</strong>（マイナス注意！）',
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `<span class="cf-outer">cos(</span><span class="cf-inner">${m[1]}</span><span class="cf-outer">)</span>`,
+      hint: m => `外側 cos の微分は −sin（マイナス！）。内側 ${m[1]} の微分を掛けます`
+    },
+    // tan(inner)
+    { re: /^tan\((.+)\)$/, name: 'tan',
+      outer: m => 'f(u) = tan(u)',
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => 'tan(u) を微分 → <strong>1/cos²(u)</strong>',
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `<span class="cf-outer">tan(</span><span class="cf-inner">${m[1]}</span><span class="cf-outer">)</span>`,
+      hint: m => `外側 tan の微分は 1/cos²(u)。内側 ${m[1]} の微分を掛けます`
+    },
+    // exp(inner)
+    { re: /^exp\((.+)\)$/, name: 'exp',
+      outer: m => 'f(u) = eᵘ',
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => 'eᵘ を微分 → <strong>eᵘ のまま</strong>（eの特別な性質）',
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `<span class="cf-outer">exp(</span><span class="cf-inner">${m[1]}</span><span class="cf-outer">)</span>`,
+      hint: m => `eᵘ の微分は eᵘ のまま変わりません。内側 ${m[1]} の微分を掛けます`
+    },
+    // log(inner)
+    { re: /^log\((.+)\)$/, name: 'log',
+      outer: m => 'f(u) = ln(u)',
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => 'ln(u) を微分 → <strong>1/u</strong>',
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `<span class="cf-outer">log(</span><span class="cf-inner">${m[1]}</span><span class="cf-outer">)</span>`,
+      hint: m => `log(u) の微分は 1/u。内側 ${m[1]} の微分を掛けます`
+    },
+    // sqrt(inner)
+    { re: /^sqrt\((.+)\)$/, name: 'sqrt',
+      outer: m => 'f(u) = √u = u^(1/2)',
+      inner: m => `g(x) = ${m[1]}`,
+      outerDiff: m => '√u を微分 → <strong>1/(2√u)</strong>',
+      innerDiff: m => `<strong>${m[1]}</strong> を x で微分`,
+      colorOuter: m => `<span class="cf-outer">√(</span><span class="cf-inner">${m[1]}</span><span class="cf-outer">)</span>`,
+      hint: m => `√u の微分は 1/(2√u)。内側 ${m[1]} の微分を掛けます`
+    },
+    // sin(inner)^n  e.g. sin(x)^2
+    { re: /^sin\((.+)\)\^(\d+)$/, name: 'sinpow',
+      outer: m => `f(u) = u^${m[2]}  where u=sin(x)`,
+      inner: m => `g(x) = sin(${m[1]})`,
+      outerDiff: m => `u^${m[2]} を微分 → <strong>${m[2]}u^${parseInt(m[2])-1}</strong>`,
+      innerDiff: m => `sin(${m[1]}) を微分 → <strong>cos(${m[1]})</strong>`,
+      colorOuter: m => `<span class="cf-outer">(</span><span class="cf-inner">sin(${m[1]})</span><span class="cf-outer">)^${m[2]}</span>`,
+      hint: m => `外側 u^${m[2]} の微分 × 内側 sin の微分(cos)。二重の連鎖律！`
+    },
+  ];
+
+  const trimmed = expr.replace(/\s/g,'');
+  for (const p of patterns) {
+    const m = trimmed.match(p.re);
+    if (m) return {
+      found: true,
+      outerLabel:   p.outer(m),
+      innerLabel:   p.inner(m),
+      outerExplain: p.outerDiff(m),
+      innerExplain: p.innerDiff(m),
+      colorHTML:    p.colorOuter(m),
+      hint:         p.hint(m),
+    };
+  }
+  // fallback: no recognized pattern
+  return {
+    found: false,
+    outerLabel: '複合的な構造',
+    innerLabel:  'x を含む式',
+    outerExplain: '複数の関数が組み合わさっています。<strong>積の法則</strong>や<strong>連鎖律の繰り返し</strong>が必要な場合があります。',
+    innerExplain: `式全体 <strong>${expr}</strong> を x で微分します。`,
+    colorHTML: `<span class="cf-outer">f(</span><span class="cf-inner">${expr}</span><span class="cf-outer">)</span>`,
+    hint: `この式には複数の規則が組み合わされています。math.js が自動微分した結果: <strong>${derivString}</strong>`,
+  };
+}
+
+// ============================================================
+// GRAPH
+// ============================================================
+const canvas = document.getElementById('graph');
+const ctx = canvas.getContext('2d');
+let xVal = 0.5;
+
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width || 600;
+  canvas.width  = w * dpr;
+  canvas.height = 300 * dpr;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = '300px';
+  ctx.scale(dpr, dpr);
+}
+
+function autoYRange() {
+  const xMin = -2.5, xMax = 2.5;
+  const N = 200;
+  let yMin = Infinity, yMax = -Infinity;
+  for (let i = 0; i <= N; i++) {
+    const x = xMin + (xMax - xMin) * i / N;
+    const y = evalF(x);
+    if (isFinite(y)) { yMin = Math.min(yMin, y); yMax = Math.max(yMax, y); }
+  }
+  if (!isFinite(yMin)) { yMin = -2; yMax = 2; }
+  const pad = (yMax - yMin) * 0.15 || 1;
+  return [yMin - pad, yMax + pad];
+}
+
+function drawGraph() {
+  if (!compiledF) return;
+  const W = parseFloat(canvas.style.width)  || 600;
+  const H = parseFloat(canvas.style.height) || 300;
+  ctx.clearRect(0, 0, W, H);
+
+  const xMin = -2.5, xMax = 2.5;
+  const [yMin, yMax] = autoYRange();
+
+  function toS(x, y) {
+    return [
+      ((x - xMin) / (xMax - xMin)) * W,
+      H - ((y - yMin) / (yMax - yMin)) * H
+    ];
+  }
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let gx = Math.ceil(xMin); gx <= xMax; gx++) {
+    const [sx] = toS(gx, 0);
+    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+  }
+  const gs = (yMax - yMin) / 5;
+  for (let i = 0; i <= 5; i++) {
+    const gy = yMin + i * gs;
+    const [, sy] = toS(0, gy);
+    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  const [, axY] = toS(0, 0);
+  const [axX] = toS(0, 0);
+  ctx.beginPath(); ctx.moveTo(0, axY); ctx.lineTo(W, axY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(axX, 0); ctx.lineTo(axX, H); ctx.stroke();
+
+  // Axis tick labels
+  ctx.fillStyle = 'rgba(90,94,122,0.8)';
+  ctx.font = '10px IBM Plex Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
+    if (gx === 0) continue;
+    const [sx] = toS(gx, 0);
+    ctx.fillText(gx, sx, axY + 13);
+  }
+
+  // f(x) — outer color
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(240,165,0,.9)'; ctx.lineWidth = 2.5;
+  let started = false;
+  for (let i = 0; i <= 500; i++) {
+    const x = xMin + (xMax - xMin) * i / 500;
+    const y = evalF(x);
+    if (!isFinite(y) || y < yMin*3 || y > yMax*3) { started = false; continue; }
+    const [sx, sy] = toS(x, y);
+    if (!started) { ctx.moveTo(sx, sy); started = true; } else ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+
+  // f'(x) — deriv color dashed
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(224,90,122,.85)'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+  started = false;
+  for (let i = 0; i <= 500; i++) {
+    const x = xMin + (xMax - xMin) * i / 500;
+    const y = evalFd(x);
+    if (!isFinite(y) || y < yMin*3 || y > yMax*3) { started = false; continue; }
+    const [sx, sy] = toS(x, y);
+    if (!started) { ctx.moveTo(sx, sy); started = true; } else ctx.lineTo(sx, sy);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Tangent line
+  const slope = evalFd(xVal);
+  const y0    = evalF(xVal);
+  if (isFinite(slope) && isFinite(y0)) {
+    const tL = 0.5;
+    const [tsx0, tsy0] = toS(xVal - tL, y0 + slope * (-tL));
+    const [tsx1, tsy1] = toS(xVal + tL, y0 + slope * tL);
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(167,139,250,.9)'; ctx.lineWidth = 2;
+    ctx.moveTo(tsx0, tsy0); ctx.lineTo(tsx1, tsy1); ctx.stroke();
+  }
+
+  // Vertical dotted line
+  const [pvx] = toS(xVal, 0);
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(167,139,250,.25)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.moveTo(pvx, 0); ctx.lineTo(pvx, H); ctx.stroke(); ctx.setLineDash([]);
+
+  // Points
+  if (isFinite(y0)) {
+    const [px, py] = toS(xVal, y0);
+    ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2);
+    ctx.fillStyle = 'var(--tangent)'; ctx.fill();
+    ctx.strokeStyle = '#09090f'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = 'rgba(167,139,250,.9)';
+    ctx.font = 'bold 11px IBM Plex Mono, monospace'; ctx.textAlign = 'left';
+    ctx.fillText(`f=${fmt(y0)}`, px+9, py-6);
+  }
+  const dv = evalFd(xVal);
+  if (isFinite(dv)) {
+    const [dpx, dpy] = toS(xVal, dv);
+    if (dpy >= 0 && dpy <= H) {
+      ctx.beginPath(); ctx.arc(dpx, dpy, 5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(224,90,122,.9)'; ctx.fill();
+      ctx.strokeStyle = '#09090f'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = 'rgba(224,90,122,.9)';
+      ctx.font = 'bold 11px IBM Plex Mono, monospace'; ctx.textAlign = 'left';
+      ctx.fillText(`f'=${fmt(dv)}`, dpx+9, dpy+14);
+    }
+  }
+}
+
+// ============================================================
+// PANEL
+// ============================================================
+function fmt(v) { return isFinite(v) ? v.toFixed(3) : '∞'; }
+
+function updatePanel() {
+  if (!compiledF) return;
+  const fv  = evalF(xVal);
+  const fdv = evalFd(xVal);
+  // numerical inner g(x) — for display, use numerical diff of inner
+  // We show f(x) for outer value and f'(x) for derivative
+  document.getElementById('valFx').textContent  = fmt(fv);
+  document.getElementById('valFdx').textContent = fmt(fdv);
+  // inner g(x) — we can't auto split, so show x itself
+  document.getElementById('valGx').textContent  = fmt(xVal);
+  document.getElementById('valGdx').textContent = '(自動計算中)';
+  document.getElementById('chainCalcRow').textContent = `= ${fmt(fdv)}`;
+  document.getElementById('chainResult').textContent  = `= ${fmt(fdv)}`;
+}
+
+// ============================================================
+// APPLY EXPRESSION
+// ============================================================
+function applyExpression() {
+  const raw = document.getElementById('exprInput').value.trim();
+  if (!raw) return;
+
+  const input = document.getElementById('exprInput');
+  const statusMsg = document.getElementById('statusMsg');
+  const derivedDisplay = document.getElementById('derivedDisplay');
+  const errorNotice = document.getElementById('errorNotice');
+  const mainContent = document.getElementById('mainContent');
+
+  try {
+    const { derivStr } = compileExpression(raw);
+
+    // Success UI
+    input.className = 'ok';
+    statusMsg.className = 'status-msg ok';
+    statusMsg.textContent = '✓ 解析成功 — 自動微分完了';
+    derivedDisplay.style.display = 'inline-block';
+    derivedDisplay.textContent = `f'(x) = ${derivStr}`;
+    errorNotice.className = 'error-notice';
+
+    // Decomposition analysis
+    const dec = analyzeDecomposition(raw);
+    document.getElementById('outerFuncLabel').textContent = dec.outerLabel;
+    document.getElementById('innerFuncLabel').textContent = dec.innerLabel;
+    document.getElementById('colorFormula').innerHTML = dec.colorHTML;
+    document.getElementById('outerExplainText').innerHTML = dec.outerExplain;
+    document.getElementById('innerExplainText').innerHTML = dec.innerExplain;
+    document.getElementById('hintBox').innerHTML = `<strong>連鎖律のポイント：</strong> ${dec.hint}`;
+
+    // Show main
+    mainContent.style.display = 'block';
+    resizeCanvas();
+    updateAll();
+
+  } catch (e) {
+    input.className = 'error';
+    statusMsg.className = 'status-msg err';
+    statusMsg.textContent = '× 式を認識できません';
+    derivedDisplay.style.display = 'none';
+    errorNotice.className = 'error-notice show';
+    errorNotice.innerHTML = `
+      <strong>エラー：</strong> ${e.message}<br>
+      <small style="color:var(--dim);margin-top:6px;display:block">
+        ヒント：掛け算は <code>2*x</code>、べき乗は <code>x^2</code>、
+        指数関数は <code>exp(x)</code>、対数は <code>log(x)</code> と入力してください。
+      </small>
+    `;
+  }
+}
+
+function setPreset(expr) {
+  document.getElementById('exprInput').value = expr;
+  applyExpression();
+}
+
+function updateAll() { updatePanel(); drawGraph(); }
+
+// ============================================================
+// SLIDER
+// ============================================================
+document.getElementById('xSlider').addEventListener('input', function() {
+  xVal = parseInt(this.value) / 100;
+  document.getElementById('xReadout').textContent = `x = ${xVal.toFixed(2)}`;
+  updateAll();
+});
+
+// Enter key
+document.getElementById('exprInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') applyExpression();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('resize', () => { if (compiledF) { resizeCanvas(); drawGraph(); } });
+setPreset('(2*x+1)^3');
+</script>
+</body>
+</html>

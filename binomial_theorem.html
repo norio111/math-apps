@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二項定理学習アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 40px;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 32px;
+                margin-bottom: 30px;
+            }
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .section-title {
+                font-size: 20px;
+            }
+        }
+
+        /* スライダー */
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* パスカルの三角形 */
+        .pascal-triangle {
+            text-align: center;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .pascal-row {
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .pascal-number {
+            display: inline-block;
+            min-width: 32px;
+            padding: 6px 4px;
+            margin: 0 2px;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .pascal-number {
+                min-width: 50px;
+                padding: 10px;
+                margin: 0 6px;
+                font-size: 16px;
+            }
+        }
+
+        .pascal-number.highlight {
+            background: #ff6b6b;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+
+        .pascal-number.small {
+            min-width: 26px;
+            padding: 4px 2px;
+            margin: 0 1px;
+            font-size: 11px;
+            border-radius: 4px;
+        }
+
+        .pascal-number.tiny {
+            min-width: 20px;
+            padding: 3px 1px;
+            margin: 0 1px;
+            font-size: 9px;
+            border-radius: 3px;
+        }
+
+        /* 展開式 */
+        .expansion {
+            font-size: 16px;
+            color: #333;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        @media (min-width: 768px) {
+            .expansion {
+                font-size: 18px;
+            }
+        }
+
+        /* 入力フィールド */
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .input-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-field {
+            width: 80px;
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .calc-button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calc-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .calc-button:active {
+            transform: translateY(0);
+        }
+
+        /* 計算結果 */
+        .calculation-steps {
+            margin-top: 20px;
+        }
+
+        .step {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .step {
+                font-size: 16px;
+            }
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        @media (min-width: 768px) {
+            .result-value {
+                font-size: 48px;
+            }
+        }
+
+        .verification {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        @media (min-width: 768px) {
+            .verification {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>二項定理学習アプリ</h1>
+
+        <!-- パスカルの三角形 -->
+        <div class="section">
+            <div class="section-title">1. パスカルの三角形</div>
+            
+            <div class="slider-container">
+                <label class="slider-label">
+                    段数: <span class="slider-value" id="nValue">4</span>
+                </label>
+                <input type="range" min="0" max="9" value="4" class="slider" id="nSlider">
+            </div>
+
+            <div class="pascal-triangle" id="pascalTriangle"></div>
+        </div>
+
+        <!-- 展開式 -->
+        <div class="section">
+            <div class="section-title">2. (a + b)<sup id="expansionPower">4</sup> の展開式</div>
+            <div class="expansion" id="expansionFormula"></div>
+            <div style="margin-top: 15px; color: #666; font-size: 14px;">
+                係数: <span id="coefficients" style="font-weight: bold; color: #667eea;"></span>
+            </div>
+        </div>
+
+        <!-- 計算機 -->
+        <div class="section">
+            <div class="section-title">3. 実際に計算してみる</div>
+            
+            <div class="input-group">
+                <span class="input-label">a =</span>
+                <input type="number" class="input-field" id="aValue" value="2">
+                
+                <span class="input-label">b =</span>
+                <input type="number" class="input-field" id="bValue" value="3">
+                
+                <button class="calc-button" onclick="calculate()">計算</button>
+            </div>
+
+            <div id="calculationResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentN = 4;
+
+        // パスカルの三角形のn段目を計算
+        function pascalRow(n) {
+            const row = [1];
+            for (let k = 0; k < n; k++) {
+                row.push(row[k] * (n - k) / (k + 1));
+            }
+            return row;
+        }
+
+        // パスカルの三角形を描画
+        function drawPascalTriangle(maxN) {
+            const container = document.getElementById('pascalTriangle');
+            container.innerHTML = '';
+
+            for (let n = 0; n <= maxN; n++) {
+                const row = pascalRow(n);
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'pascal-row';
+
+                // 段数に応じてサイズクラスを決める
+                let sizeClass = '';
+                if (maxN >= 8) {
+                    sizeClass = 'tiny';
+                } else if (maxN >= 5) {
+                    sizeClass = 'small';
+                }
+
+                row.forEach(num => {
+                    const numSpan = document.createElement('span');
+                    numSpan.className = 'pascal-number';
+                    if (sizeClass) numSpan.classList.add(sizeClass);
+                    if (n === maxN) {
+                        numSpan.classList.add('highlight');
+                    }
+                    numSpan.textContent = num;
+                    rowDiv.appendChild(numSpan);
+                });
+
+                container.appendChild(rowDiv);
+            }
+        }
+
+        // 展開式を作成
+        function createExpansion(n) {
+            const coefficients = pascalRow(n);
+            const terms = [];
+
+            for (let k = 0; k <= n; k++) {
+                const coef = coefficients[k];
+                const aPower = n - k;
+                const bPower = k;
+
+                let term = '';
+
+                // 係数
+                if (coef !== 1 || (aPower === 0 && bPower === 0)) {
+                    term += coef;
+                }
+
+                // aの項
+                if (aPower > 0) {
+                    term += 'a';
+                    if (aPower > 1) {
+                        term += `<sup>${aPower}</sup>`;
+                    }
+                }
+
+                // bの項
+                if (bPower > 0) {
+                    term += 'b';
+                    if (bPower > 1) {
+                        term += `<sup>${bPower}</sup>`;
+                    }
+                }
+
+                // a^0 b^0 の場合
+                if (aPower === 0 && bPower === 0) {
+                    term = String(coef);
+                }
+
+                terms.push(term);
+            }
+
+            return terms.join(' + ');
+        }
+
+        // 計算を実行
+        function calculate() {
+            const n = currentN;
+            const a = parseFloat(document.getElementById('aValue').value);
+            const b = parseFloat(document.getElementById('bValue').value);
+
+            if (isNaN(a) || isNaN(b)) {
+                alert('数値を入力してください');
+                return;
+            }
+
+            const coefficients = pascalRow(n);
+            let total = 0;
+            const steps = [];
+
+            // 各項を計算
+            for (let k = 0; k <= n; k++) {
+                const coef = coefficients[k];
+                const aPower = n - k;
+                const bPower = k;
+
+                const aPart = Math.pow(a, aPower);
+                const bPart = Math.pow(b, bPower);
+                const value = coef * aPart * bPart;
+
+                total += value;
+
+                const step = `項${k + 1}: ${coef}×${a}<sup>${aPower}</sup>×${b}<sup>${bPower}</sup> = ${coef}×${aPart}×${bPart} = ${value}`;
+                steps.push(step);
+            }
+
+            // 結果を表示
+            const resultDiv = document.getElementById('calculationResult');
+            
+            let html = '<div class="calculation-steps">';
+            html += '<div style="font-weight: bold; margin-bottom: 10px; color: #667eea;">計算過程:</div>';
+            
+            steps.forEach(step => {
+                html += `<div class="step">${step}</div>`;
+            });
+            
+            html += '</div>';
+
+            // 合計
+            const sumTerms = [];
+            for (let k = 0; k <= n; k++) {
+                const coef = coefficients[k];
+                const aPower = n - k;
+                const bPower = k;
+                const value = coef * Math.pow(a, aPower) * Math.pow(b, bPower);
+                sumTerms.push(value);
+            }
+            
+            html += `<div class="step" style="background: #e8f4f8; border-left-color: #667eea; font-weight: bold;">`;
+            html += `合計: ${sumTerms.join(' + ')} = ${total}`;
+            html += '</div>';
+
+            // 検算
+            const directResult = Math.pow(a + b, n);
+            html += `<div class="result-box">`;
+            html += `<div class="result-title">(${a} + ${b})<sup>${n}</sup> の計算結果</div>`;
+            html += `<div class="result-value">${total}</div>`;
+            html += `<div class="verification">検算: (${a} + ${b})<sup>${n}</sup> = ${directResult} ${total === directResult ? '✓' : '✗'}</div>`;
+            html += `</div>`;
+
+            resultDiv.innerHTML = html;
+        }
+
+        // UIを更新
+        function updateUI() {
+            drawPascalTriangle(currentN);
+            
+            const expansion = createExpansion(currentN);
+            document.getElementById('expansionFormula').innerHTML = expansion;
+            document.getElementById('expansionPower').textContent = currentN;
+            
+            const coefficients = pascalRow(currentN);
+            document.getElementById('coefficients').textContent = `[${coefficients.join(', ')}]`;
+            
+            // 計算結果をクリア
+            document.getElementById('calculationResult').innerHTML = '';
+        }
+
+        // スライダーのイベント
+        document.getElementById('nSlider').addEventListener('input', (e) => {
+            currentN = parseInt(e.target.value);
+            document.getElementById('nValue').textContent = currentN;
+            updateUI();
+        });
+
+        // 初期表示
+        updateUI();
+    </script>
+</body>
+</html>
