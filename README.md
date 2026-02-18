@@ -8,8 +8,7 @@
 | ファイル名 | 内容 |
 |---|---|
 | binomial_theorem.html | 二項定理の学習アプリ |
-| calculus_learning_app.html | 微分マスター |
-| calculus_ml_app.html | 変化率と傾き |
+| calculus_ml_app.html | ディープラーニングの微分 |
 | chain_rule_free_input.html | 式を入力して連鎖律を見る |
 | math_drill.html | 微分ドリル |
 

@@ -24,12 +24,22 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg) !important;
+    color: var(--text) !important;
     font-family: 'Noto Sans JP', sans-serif;
     font-weight: 300;
     min-height: 100vh;
     line-height: 1.7;
+    color-scheme: dark;
+  }
+
+  /* Force all text elements to use our colors */
+  * {
+    color: inherit;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, span, div, button, input, label {
+    color: inherit;
   }
 
   .app-shell {
@@ -66,7 +76,7 @@
   .sidebar-logo p {
     font-family: 'Space Mono', monospace;
     font-size: 0.6rem;
-    color: var(--text-dim);
+    color: var(--text-mid);
     letter-spacing: 0.08em;
     margin-top: 0.25rem;
     text-transform: uppercase;
@@ -76,7 +86,7 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.62rem;
     font-family: 'Space Mono', monospace;
-    color: var(--text-dim);
+    color: var(--text-mid);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     margin-top: 0.5rem;
@@ -145,7 +155,7 @@
   }
 
   .page-subtitle {
-    color: var(--text-dim);
+    color: var(--text-mid);
     font-size: 0.82rem;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
@@ -178,12 +188,13 @@
   .card-title {
     font-family: 'Space Mono', monospace;
     font-size: 0.68rem;
-    color: var(--text-dim);
+    color: var(--text-mid);
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
   .card-body { padding: 1.25rem; }
+  .card-body p { color: var(--text); }
 
   /* ===== Two col layout ===== */
   .two-col {
@@ -254,7 +265,7 @@
     margin-top: 0.1rem;
   }
 
-  .step-text { font-size: 0.85rem; line-height: 1.8; }
+  .step-text { font-size: 0.85rem; line-height: 1.8; color: var(--text); }
   .step-text strong { color: var(--accent); }
   .step-text .code { font-family: 'Space Mono', monospace; color: var(--accent2); font-size: 0.82rem; }
 
@@ -301,7 +312,7 @@
     margin-top: 0.75rem;
   }
 
-  .ctrl-label { font-size: 0.78rem; color: var(--text-dim); white-space: nowrap; }
+  .ctrl-label { font-size: 0.78rem; color: var(--text-mid); white-space: nowrap; }
 
   .val-badge {
     font-family: 'Space Mono', monospace;
@@ -348,7 +359,7 @@
     text-align: center;
   }
 
-  .info-cell .lbl { font-size: 0.65rem; color: var(--text-dim); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.07em; }
+  .info-cell .lbl { font-size: 0.65rem; color: var(--text-mid); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.07em; }
   .info-cell .val { font-family: 'Space Mono', monospace; font-size: 0.95rem; margin-top: 0.2rem; }
 
   /* ===== Gradient viz ===== */
@@ -405,6 +416,163 @@
 
   .mobile-nav button.active { color: var(--accent); }
   .mobile-nav button .m-icon { font-size: 1.1rem; }
+
+  /* ===== Cheat sheet styles ===== */
+  .formula-card {
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+  }
+
+  .formula-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(126,232,162,0.1);
+  }
+
+  .formula-card.color-green { border-left: 4px solid var(--accent); }
+  .formula-card.color-yellow { border-left: 4px solid var(--accent2); }
+  .formula-card.color-blue { border-left: 4px solid var(--accent4); }
+  .formula-card.color-purple { border-left: 4px solid var(--accent5); }
+  .formula-card.color-red { border-left: 4px solid var(--accent3); }
+
+  .formula-card .f-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+
+  .formula-card .f-main {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .formula-card .f-ja {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .formula-card .f-example {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent2);
+    background: var(--bg);
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    display: inline-block;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 1100px) {
+    .three-col { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 700px) {
+    .three-col { grid-template-columns: 1fr; }
+  }
+
+  .flow-chart {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+  }
+
+  .flow-step:last-child { margin-bottom: 0; }
+
+  .flow-num {
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+  }
+
+  .flow-text {
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .flow-text strong { color: var(--accent2); }
+
+  .flow-arrow {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    margin: -0.5rem 0;
+  }
+
+  .color-legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--surface2);
+    border-radius: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .legend-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 2px solid;
+  }
+
+  .big-formula {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.3rem;
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg);
+    border-radius: 10px;
+    margin: 1rem 0;
+    color: var(--accent);
+    font-weight: 700;
+    border: 2px dashed var(--border);
+  }
+
 </style>
 </head>
 <body>
@@ -414,10 +582,14 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-logo">
-      <h1>微分マスター</h1>
+      <h1>ディープラーニングの微分</h1>
       <p>for Machine Learning</p>
     </div>
     <div class="sidebar-section">基礎</div>
+    <div class="nav-item" data-page="cheatsheet" onclick="goPage('cheatsheet',this)">
+      <span class="nav-icon">⚡</span> クイック早見表
+      <span class="ml-badge" style="background:rgba(247,183,49,0.15);color:var(--accent2)">NEW</span>
+    </div>
     <div class="nav-item active" data-page="slope" onclick="goPage('slope',this)">
       <span class="nav-icon">📐</span> 変化率・傾き
     </div>
@@ -445,9 +617,253 @@
   <main class="main">
 
     <!-- =========================================
+         PAGE: クイック早見表
+    ========================================= -->
+    <div class="page active" id="page-cheatsheet">
+      <div class="page-title">⚡ クイック早見表</div>
+      <div class="page-subtitle">授業中に困ったらここ！5秒で思い出せる公式・手順まとめ</div>
+
+      <!-- 色分け凡例 -->
+      <div class="color-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background:rgba(126,232,162,0.2);border-color:var(--accent)"></div>
+          <span>べき乗則（最頻出）</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:rgba(247,183,49,0.2);border-color:var(--accent2)"></div>
+          <span>定数ルール</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:rgba(116,185,255,0.2);border-color:var(--accent4)"></div>
+          <span>基本関数</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:rgba(209,140,247,0.2);border-color:var(--accent5)"></div>
+          <span>偏微分・勾配</span>
+        </div>
+      </div>
+
+      <!-- 最重要公式カード -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot" style="background:var(--accent3)"></div>
+          <span class="card-title">最重要！これだけは暗記</span>
+        </div>
+        <div class="card-body">
+          <div class="three-col">
+            <div class="formula-card color-green">
+              <div class="f-label">べき乗則（90%これ）</div>
+              <div class="f-main">(xⁿ)' = n·xⁿ⁻¹</div>
+              <div class="f-ja">指数を前に、指数を1減らす</div>
+              <div class="f-example">x³ → 3x²</div>
+            </div>
+
+            <div class="formula-card color-yellow">
+              <div class="f-label">定数は消える</div>
+              <div class="f-main">(c)' = 0</div>
+              <div class="f-ja">数字だけの項は微分で0</div>
+              <div class="f-example">5 → 0</div>
+            </div>
+
+            <div class="formula-card color-yellow">
+              <div class="f-label">係数はそのまま</div>
+              <div class="f-main">(c·f)' = c·f'</div>
+              <div class="f-ja">数字の部分は残す</div>
+              <div class="f-example">3x² → 6x</div>
+            </div>
+
+            <div class="formula-card color-blue">
+              <div class="f-label">sin の微分</div>
+              <div class="f-main">(sin x)' = cos x</div>
+              <div class="f-ja">sin → cos に変わる</div>
+            </div>
+
+            <div class="formula-card color-blue">
+              <div class="f-label">cos の微分</div>
+              <div class="f-main">(cos x)' = −sin x</div>
+              <div class="f-ja">cos → −sin（マイナス!）</div>
+            </div>
+
+            <div class="formula-card color-blue">
+              <div class="f-label">eˣ は不変</div>
+              <div class="f-main">(eˣ)' = eˣ</div>
+              <div class="f-ja">微分しても変わらない！</div>
+            </div>
+
+            <div class="formula-card color-blue">
+              <div class="f-label">ln の微分</div>
+              <div class="f-main">(ln x)' = 1/x</div>
+              <div class="f-ja">損失関数でよく使う</div>
+            </div>
+
+            <div class="formula-card color-purple">
+              <div class="f-label">偏微分の基本</div>
+              <div class="f-main">∂f/∂x</div>
+              <div class="f-ja">他の変数は定数扱い</div>
+              <div class="f-example">∂(x²+y²)/∂x = 2x</div>
+            </div>
+
+            <div class="formula-card color-purple">
+              <div class="f-label">勾配降下法</div>
+              <div class="f-main">w := w − η·∂L/∂w</div>
+              <div class="f-ja">傾きの逆に進む</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 問題解決フロー -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot" style="background:var(--accent)"></div>
+          <span class="card-title">問題を見たらこの順番で考える</span>
+        </div>
+        <div class="card-body">
+          <div class="flow-chart">
+            <div class="flow-step">
+              <div class="flow-num">1</div>
+              <div class="flow-text"><strong>式を +・− で区切る</strong>（各項に分解）</div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <div class="flow-text">各項を見る：<strong>定数？xⁿ？sin/cos/eˣ？</strong></div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <div class="flow-text">
+                <strong>定数</strong>→0 /<strong> xⁿ</strong>→nxⁿ⁻¹ / <strong>sin</strong>→cos / <strong>cos</strong>→−sin
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-num">4</div>
+              <div class="flow-text"><strong>係数（数字）はそのまま残す</strong></div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-num">5</div>
+              <div class="flow-text"><strong>全部足す</strong> → 完成！</div>
+            </div>
+          </div>
+
+          <div class="hl-box hl-green" style="margin-top:1rem">
+            <span class="hl-title">💡 実例で確認</span>
+            f(x) = 4x³ − 2x² + 5x − 8<br><br>
+            ① 区切る：<span style="color:var(--accent2)">4x³</span> | <span style="color:var(--accent2)">−2x²</span> | <span style="color:var(--accent2)">5x</span> | <span style="color:var(--accent2)">−8</span><br>
+            ② 判定：べき乗 | べき乗 | べき乗 | 定数<br>
+            ③ 適用：12x² | −4x | 5 | 0<br>
+            ④ 足す：<strong style="color:var(--accent)">f'(x) = 12x² − 4x + 5</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- よくある間違い -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot" style="background:var(--accent3)"></div>
+          <span class="card-title">⚠️ よくある間違い集</span>
+        </div>
+        <div class="card-body">
+          <div class="two-col">
+            <div class="hl-box hl-red">
+              <span class="hl-title">❌ 間違い：係数を忘れる</span>
+              3x² を微分 → <del>2x</del><br>
+              <strong style="color:var(--accent)">✅ 正解：6x</strong> （3を残す！）
+            </div>
+            <div class="hl-box hl-red">
+              <span class="hl-title">❌ 間違い：定数を微分して残す</span>
+              x² + 5 を微分 → <del>2x + 5</del><br>
+              <strong style="color:var(--accent)">✅ 正解：2x</strong> （5は消える！）
+            </div>
+            <div class="hl-box hl-red">
+              <span class="hl-title">❌ 間違い：cos の符号ミス</span>
+              cos x を微分 → <del>sin x</del><br>
+              <strong style="color:var(--accent)">✅ 正解：−sin x</strong> （マイナス！）
+            </div>
+            <div class="hl-box hl-red">
+              <span class="hl-title">❌ 間違い：偏微分で全部微分</span>
+              ∂(x²+y²)/∂x → <del>2x+2y</del><br>
+              <strong style="color:var(--accent)">✅ 正解：2x</strong> （yは定数扱い！）
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 機械学習直結マップ -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot" style="background:var(--accent2)"></div>
+          <span class="card-title">🤖 この数式→MLのどこで使う？</span>
+        </div>
+        <div class="card-body">
+          <div class="two-col">
+            <div class="formula-card color-green">
+              <div class="f-label">べき乗の微分</div>
+              <div class="f-main">(xⁿ)' = nxⁿ⁻¹</div>
+              <div class="f-ja">
+                <strong style="color:var(--accent2)">→ 損失関数の微分</strong><br>
+                L = (y − ŷ)² を最小化するとき
+              </div>
+            </div>
+
+            <div class="formula-card color-purple">
+              <div class="f-label">偏微分</div>
+              <div class="f-main">∂L/∂w</div>
+              <div class="f-ja">
+                <strong style="color:var(--accent2)">→ バックプロパゲーション</strong><br>
+                各重みの更新方向を決める
+              </div>
+            </div>
+
+            <div class="formula-card color-blue">
+              <div class="f-label">eˣ の微分</div>
+              <div class="f-main">(eˣ)' = eˣ</div>
+              <div class="f-ja">
+                <strong style="color:var(--accent2)">→ シグモイド関数</strong><br>
+                σ(x) = 1/(1+e⁻ˣ) の導出
+              </div>
+            </div>
+
+            <div class="formula-card color-purple">
+              <div class="f-label">勾配降下</div>
+              <div class="f-main">w := w − η·∂L/∂w</div>
+              <div class="f-ja">
+                <strong style="color:var(--accent2)">→ 学習そのもの</strong><br>
+                ニューラルネットの重み更新式
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5秒チェックリスト -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot" style="background:var(--accent4)"></div>
+          <span class="card-title">授業前5秒チェック</span>
+        </div>
+        <div class="card-body">
+          <div class="big-formula">
+            (xⁿ)' = n·xⁿ⁻¹
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; font-size:0.85rem">
+            <div>☑ 指数を前に出す</div>
+            <div>☑ 指数を1減らす</div>
+            <div>☑ 係数は残す</div>
+            <div>☑ 定数は0</div>
+            <div>☑ 項ごとに別々に</div>
+            <div>☑ 最後に足す</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================
          PAGE: 変化率・傾き
     ========================================= -->
-    <div class="page active" id="page-slope">
+    <div class="page" id="page-slope">
       <div class="page-title">変化率と傾き</div>
       <div class="page-subtitle">微分の「意味」を日本語で理解する — 機械学習では「損失がどれだけ変化するか」に直結します</div>
 
@@ -1154,7 +1570,8 @@
 
 <!-- Mobile nav -->
 <nav class="mobile-nav">
-  <button onclick="goPage('slope',this)" class="active"><span class="m-icon">📐</span>変化率</button>
+  <button onclick="goPage('cheatsheet',this)" class="active"><span class="m-icon">⚡</span>早見表</button>
+  <button onclick="goPage('slope',this)"><span class="m-icon">📐</span>変化率</button>
   <button onclick="goPage('limit',this)"><span class="m-icon">∞</span>極限</button>
   <button onclick="goPage('rules',this)"><span class="m-icon">📏</span>ルール</button>
   <button onclick="goPage('partial',this)"><span class="m-icon">∂</span>偏微分</button>
@@ -1359,9 +1776,9 @@ function drawGD() {
   }
 
   // Label
-  ctx.fillStyle='#5a5a7a'; ctx.font='11px Space Mono,monospace';
-  ctx.fillText('L(w) = (w−1)²', 8, 16);
-  ctx.fillText('最小値: w=1', 8, 30);
+  ctx.fillStyle='#aaaac0'; ctx.font='12px Space Mono,monospace';
+  ctx.fillText('L(w) = (w−1)²', 10, 18);
+  ctx.fillText('最小値: w=1', 10, 34);
 
   // Info update
   document.getElementById('gdW').textContent=gdW.toFixed(3);
@@ -1377,27 +1794,41 @@ function stepGD() {
 }
 
 function resetGD() {
-  gdW=2.5; gdSteps=0;
-  if(gdAuto){ clearInterval(gdAuto); gdAuto=null; document.getElementById('autoBtn').textContent='自動実行'; document.getElementById('autoBtn').style.background='var(--accent2)'; }
+  if(gdAuto) {
+    clearInterval(gdAuto);
+    gdAuto = null;
+  }
+  gdW = 2.5;
+  gdSteps = 0;
+  const autoBtn = document.getElementById('autoBtn');
+  autoBtn.textContent = '自動実行';
+  autoBtn.style.background = 'var(--accent2)';
+  autoBtn.style.borderColor = 'var(--accent2)';
   drawGD();
 }
 
 function updateLR(v) { gdLR=parseFloat(v); document.getElementById('lrBadge').textContent=parseFloat(v).toFixed(2); }
 
 function autoGD() {
+  const autoBtn = document.getElementById('autoBtn');
   if(gdAuto) {
-    clearInterval(gdAuto); gdAuto=null;
-    document.getElementById('autoBtn').textContent='自動実行';
-    document.getElementById('autoBtn').style.background='var(--accent2)';
+    clearInterval(gdAuto);
+    gdAuto = null;
+    autoBtn.textContent = '自動実行';
+    autoBtn.style.background = 'var(--accent2)';
+    autoBtn.style.borderColor = 'var(--accent2)';
   } else {
-    document.getElementById('autoBtn').textContent='停止';
-    document.getElementById('autoBtn').style.background='var(--accent3)';
-    gdAuto=setInterval(()=>{
+    autoBtn.textContent = '停止';
+    autoBtn.style.background = 'var(--accent3)';
+    autoBtn.style.borderColor = 'var(--accent3)';
+    gdAuto = setInterval(() => {
       stepGD();
-      if(Math.abs(gdL(gdW))<0.0001){
-        clearInterval(gdAuto); gdAuto=null;
-        document.getElementById('autoBtn').textContent='完了！';
-        document.getElementById('autoBtn').style.background='var(--accent)';
+      if(Math.abs(gdL(gdW)) < 0.0001) {
+        clearInterval(gdAuto);
+        gdAuto = null;
+        autoBtn.textContent = '自動実行';
+        autoBtn.style.background = 'var(--accent)';
+        autoBtn.style.borderColor = 'var(--accent)';
       }
     }, 120);
   }
